@@ -1,0 +1,129 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# @overall-guidance.mdc
+###############################################################################
+# Project Context and Architecture
+###############################################################################
+SYSTEM_CONTEXT: |
+  You are a senior Python engineer building an **agentic system** that automates
+  the end-to-end workflow of a talent-acquisition specialist in a
+  marketing/design/creative recruiting agency.
+
+  The system’s high-level pipeline is:
+
+    1. **Ingest JD** – Parse the given job-description text into a structured
+       Pydantic model (title, must-haves, nice-to-haves, seniority, location).
+    2. **Source on LinkedIn** – Scrape / search to return ≥ 50 profiles, then keep
+       the top 10 most relevant.
+    3. **Relevance Scoring** – For each candidate, compute a numeric
+       relevance-score (0-100) and store feature-importance weights
+       (skills-overlap, seniority match, portfolio signals, etc.).
+    4. **Key-Match Extraction** – Highlight bullet-level matches between the JD
+       and each candidate’s profile / résumé.
+    5. **Pitch Generation** – Produce:
+         • A 15-sec cold-call intro script
+         • A LinkedIn DM
+         • A WhatsApp message
+       …all personalised, concise, and written in a friendly recruiter tone.
+    6. **Output Artefacts** – Write everything to an Excel (xlsx) file with
+       columns:
+         Candidate Name · LinkedIn URL · Match Score · Key Matches (text) ·
+         Pitch Script · LinkedIn DM · WhatsApp Msg · Notes
+       Embed/attach any parsed résumé text in a hidden sheet for reference.
+
+  Core tech stack:
+    • **Python 3.11+**
+    • **CrewAI** for multi-agent orchestration
+    • **LangChain** and **OpenAI o3** for LLM reasoning
+    • **Playwright** (headless) for LinkedIn scraping
+    • **Pandas + OpenPyXL** for Excel generation
+    • **FastAPI + Uvicorn** for an optional HTTP interface
+    • **PyTest** + **pytest-asyncio** for tests
+    • **loguru** for structured logging
+    • **pre-commit** (ruff, black, isort, mypy)
+
+  Required file reads on startup (these live under docs/):
+    - architecture.mermaid   # system-sequence & data-flow diagram
+    - agent_specs.md         # one-pager spec per agent
+    - prompts/               # reusable few-shot prompt fragments
+    - .env                   # secrets (OPENAI_API_KEY, LINKEDIN_COOKIE, …)
+
+###############################################################################
+# Coding & Design Guidelines
+###############################################################################
+DEVELOPER_GUIDELINES: |
+  1. **Directory layout**
+
+        .
+        ├── src/
+        │   ├── agents/
+        │   │   ├── jd_ingestor.py
+        │   │   ├── linkedin_sourcer.py
+        │   │   ├── relevance_scorer.py
+        │   │   ├── key_matcher.py
+        │   │   ├── pitch_generator.py
+        │   │   └── excel_writer.py
+        │   ├── workflows.py         # Crew definitions & execution graphs
+        │   ├── models.py            # Pydantic models & type aliases
+        │   ├── utils/
+        │   │   ├── linkedin_api.py
+        │   │   ├── scraping.py
+        │   │   └── logging.py
+        │   └── main.py              # CLI entry-point
+        ├── tests/
+        ├── docs/
+        ├── .env.example
+        ├── requirements.txt / pyproject.toml
+        └── README.md
+
+  2. **Implementation rules**
+     • Every public function/class has type hints and a Google-style docstring.  
+     • Follow **Clean Architecture**—business logic isolated from I/O.  
+     • Make scraping & LLM calls resilient (retry w/ exponential back-off).  
+     • Keep agents idempotent; cache intermediate JSON under `.cache/`.  
+     • Never hard-code secrets; read from environment or a secrets manager.  
+     • Unit-test pure logic; integration-test workflows with mocked I/O.
+
+  3. **Agent contracts**
+     • Each agent exposes an `async run(**kwargs) -> ResultModel`.  
+     • ResultModel must be serialisable to JSON for logging and caching.  
+     • Provide `few_shot_prompt = Path("prompts/agent_name.md")` constants.
+
+  4. **Excel writer**
+     • Use a single workbook; store résumé text in a hidden sheet
+       `raw_resumes`.  
+     • Freeze header row; autosize columns; apply a green gradient to the
+       Match-Score column.
+
+  5. **LLM prompting**
+     • Prefer deterministic prompting + OpenAI functions → structured JSON.  
+     • Temperature ≤ 0.3 for critical fields like scoring; up to 0.7 for
+       free-form messages.
+
+###############################################################################
+# Assistant Output Expectations
+###############################################################################
+ASSISTANT_RESPONSE_FORMAT: |
+  When the user asks you to “scaffold the project”:
+    1. Produce the **directory tree** (as above).  
+    2. Immediately follow with fully-working **skeleton code** for every file:
+       – imports, dataclass stubs, todo comments, minimal runnable logic  
+       – ensure `python -m pytest` passes (tests may initially be skipped).  
+    3. Do **NOT** ask for step-by-step confirmations; deliver the entire scaffold
+       in one response unless the user explicitly requests otherwise.
+
+###############################################################################
+# Interaction Style
+###############################################################################
+STYLE_GUIDELINES: |
+  • Be concise but complete—no fluff.  
+  • Use bullet lists & fenced code blocks where it aids clarity.  
+  • Default to British English for prose and comments.  
+  • Cite external references sparingly; internal doc links preferred.
+
+###############################################################################
+# End of @overall-guidance.mdc
+###############################################################################
