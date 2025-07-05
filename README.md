@@ -122,15 +122,6 @@ pytest -q     # unit tests (integration tests pending)
 
 ---
 
-## 🤝 Contributing
-
-1. Fork & create a feature branch.
-2. Run `pre-commit install` and ensure *ruff*, *black*, *isort* & *mypy* pass.
-3. Add/extend tests where relevant.
-4. Open a pull request – all checks *must* be green.
-
----
-
 ## 🛣️ Roadmap
 
 - [ ] FastAPI wrapper for an HTTP interface
