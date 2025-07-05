@@ -20,5 +20,13 @@ async def search_linkedin(query: str, max_results: int = 50) -> List[dict[str, A
         A list of dicts with minimal profile data.
     """
     logger.debug("Pretending to search LinkedIn for query: %s", query)
-    # TODO: Implement real scraping via Playwright + LinkedIn cookies
+    # TODO(student): Implement real scraping using Playwright.
+    #   • Install Playwright (`pip install playwright && playwright install chromium`) and
+    #     use the async API (`async with async_playwright()`).
+    #   • Reuse a logged-in LinkedIn session by passing the `li_at` cookie (google "linkedin li_at scraping").
+    #   • Navigate to the LinkedIn People Search results page built from `query` and keep scrolling
+    #     until `max_results` profiles have loaded (`page.evaluate("window.scrollBy")`).
+    #   • Extract profile card details via locator queries instead of brittle XPath.
+    #   • Consider `asyncio.gather` for concurrent profile-page enrichment.
+    #   • Respect LinkedIn's TOS ‑ add rate limiting and randomised delays.
     return [] 

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 # -----------------------------------------------------------------------------
@@ -24,7 +24,7 @@ class JobDescription(BaseModel):
     location: Optional[str] = None
     raw_text: Optional[str] = None
 
-    @validator("title")
+    @field_validator("title")
     @classmethod
     def _title_not_empty(cls, v: str) -> str:  # noqa: D401,N805
         if not v:
@@ -56,7 +56,7 @@ class CandidateProfile(BaseModel):
 class SourcingResult(BaseModel):
     """Return type for :class:`agents.linkedin_sourcer.LinkedInSourcer`."""
 
-    candidates: List[Dict[str, Any]]  # TODO: Replace dict with CandidateProfile
+    candidates: List[CandidateProfile]
 
 
 class ScoredCandidate(BaseModel):
