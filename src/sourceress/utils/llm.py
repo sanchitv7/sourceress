@@ -74,7 +74,6 @@ async def generate(prompt: str, **kwargs: Any) -> str:  # noqa: D401
 
 
 async def _hf_chat(system_prompt: str, user_prompt: str, **kwargs: Any) -> str:
-    from functools import partial
 
     from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 

@@ -16,12 +16,11 @@ error-handling across the project.
 
 from __future__ import annotations
 
-import inspect
-from typing import Any, Awaitable, Callable, Coroutine, TypeVar
+from typing import Any, Callable, Coroutine, TypeVar
 
 from crewai import Agent  # type: ignore
 from loguru import logger
-from tenacity import AsyncRetrying, RetryCallState, stop_after_attempt, wait_exponential
+from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
 
 __all__ = ["BaseAgent"]
 

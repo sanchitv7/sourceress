@@ -9,18 +9,33 @@ from typing import List, Dict, Any
 
 from loguru import logger
 
-from .scraping import search_linkedin
+from .scraping import search_linkedin_async
+from sourceress.models import CandidateProfile
 
 
-async def fetch_profiles(search_terms: str, limit: int = 50) -> List[Dict[str, Any]]:
+async def fetch_profiles(search_terms: str, limit: int = 50) -> List[CandidateProfile]:
     """Return structured LinkedIn profiles matching the search terms."""
     logger.debug("Fetching up to %d profiles for search terms: %s", limit, search_terms)
-    raw = await search_linkedin(search_terms, max_results=limit)
-    # TODO(student): Convert `raw` dicts into strongly-typed `CandidateProfile` objects.
-    #   – Normalise names, trim whitespace/emojis, canonicalise URLs.
-    #   – Optionally enrich data by hitting LinkedIn REST/GraphQL endpoints
-    #     or parsing JSON embedded in profile pages.
-    #   – Leverage libraries like `rapidfuzz` for deduplication and
-    #     `langchain.text_splitter` + OpenAI embeddings for skill extraction.
-    #   – Add unit tests using `pytest-asyncio` and fixtures to validate edge cases.
-    return raw 
+    
+    try:
+        raw_profiles = await search_linkedin_async(search_terms, max_results=limit)
+        
+        validated_profiles = []
+        for profile_data in raw_profiles:
+            try:
+                # Basic normalization
+                profile_data["name"] = profile_data.get("name", "").strip()
+                profile_data["linkedin_url"] = profile_data.get("linkedin_url", "").split("?")[0]
+
+                # Validate with Pydantic model
+                validated_profiles.append(CandidateProfile.model_validate(profile_data))
+            except Exception as e:
+                logger.warning(f"Skipping profile due to validation error: {e} | Data: {profile_data}")
+                continue
+        
+        logger.info(f"Successfully fetched and validated {len(validated_profiles)} profiles.")
+        return validated_profiles
+
+    except Exception as e:
+        logger.error(f"An error occurred while fetching profiles: {e}")
+        return [] 

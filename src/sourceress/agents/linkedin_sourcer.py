@@ -39,19 +39,27 @@ class LinkedInSourcer(BaseAgent):
             A :class:`sourceress.models.SourcingResult` instance.
         """
         self.log.debug("Starting LinkedIn sourcing for JD: %s", jd.title)
-        # TODO(student): Implement sourcing logic.
-        #   • Construct a keyword query from JD title + must-have skills.
-        #   • Use `utils.scraping.search_linkedin` to fetch raw profiles.
-        #   • Enrich each profile concurrently with `asyncio.gather` if deep data is required.
-        #   • Convert results to `CandidateProfile` instances and deduplicate by LinkedIn URL.
-        from sourceress.models import CandidateProfile
-        dummy_profiles = [
-            CandidateProfile(
-                name="Sample Candidate",
-                linkedin_url="https://linkedin.com/in/sample",
-                summary="Sample profile summary",
-                skills=["Python", "Machine Learning"],
-                location="Remote"
-            )
-        ]
-        return SourcingResult(candidates=dummy_profiles) 
+
+        # 1. Construct a search query from the job description
+        query_parts = [jd.title] + jd.must_haves
+        search_query = " ".join(query_parts)
+        self.log.info(f"Constructed search query: {search_query}")
+
+        # 2. Fetch profiles using the linkedin_api utility
+        try:
+            profiles = await fetch_profiles(search_query, limit=20)  # Using a limit for MVP
+        except Exception as e:
+            self.log.error(f"Failed to fetch profiles from LinkedIn: {e}")
+            profiles = []
+
+        # 3. Deduplicate profiles by LinkedIn URL to ensure uniqueness
+        seen_urls = set()
+        unique_profiles = []
+        for profile in profiles:
+            if profile.linkedin_url not in seen_urls:
+                unique_profiles.append(profile)
+                seen_urls.add(profile.linkedin_url)
+        
+        self.log.info(f"Sourced {len(unique_profiles)} unique candidate profiles.")
+
+        return SourcingResult(candidates=unique_profiles) 
