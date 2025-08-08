@@ -1,9 +1,11 @@
 ---
-description: 
-globs: 
+alwaysApply: true
+---
+---
+description: Project context and architecture guidelines for the talent-acquisition agentic system.
 alwaysApply: false
 ---
-# @overall-guidance.mdc
+
 ###############################################################################
 # Project Context and Architecture
 ###############################################################################
@@ -16,8 +18,8 @@ SYSTEM_CONTEXT: |
 
     1. **Ingest JD** – Parse the given job-description text into a structured
        Pydantic model (title, must-haves, nice-to-haves, seniority, location).
-    2. **Source on LinkedIn** – Scrape / search to return ≥ 50 profiles, then keep
-       the top 10 most relevant.
+    2. **Source on LinkedIn** – OAuth-like authentication flow, then scrape/search 
+       to return 10-20 profiles for MVP (50+ in production).
     3. **Relevance Scoring** – For each candidate, compute a numeric
        relevance-score (0-100) and store feature-importance weights
        (skills-overlap, seniority match, portfolio signals, etc.).
@@ -38,7 +40,7 @@ SYSTEM_CONTEXT: |
     • **Python 3.11+**
     • **CrewAI** for multi-agent orchestration
     • **LangChain** and **OpenAI o3** for LLM reasoning
-    • **Playwright** (headless) for LinkedIn scraping
+    • **Playwright** for LinkedIn OAuth-like auth + authenticated scraping
     • **Pandas + OpenPyXL** for Excel generation
     • **FastAPI + Uvicorn** for an optional HTTP interface
     • **PyTest** + **pytest-asyncio** for tests
@@ -49,7 +51,7 @@ SYSTEM_CONTEXT: |
     - architecture.mermaid   # system-sequence & data-flow diagram
     - agent_specs.md         # one-pager spec per agent
     - prompts/               # reusable few-shot prompt fragments
-    - .env                   # secrets (OPENAI_API_KEY, LINKEDIN_COOKIE, …)
+    - .env                   # secrets (OPENAI_API_KEY, no LinkedIn passwords stored)
 
 ###############################################################################
 # Coding & Design Guidelines
@@ -69,6 +71,7 @@ DEVELOPER_GUIDELINES: |
         │   ├── workflows.py         # Crew definitions & execution graphs
         │   ├── models.py            # Pydantic models & type aliases
         │   ├── utils/
+        │   │   ├── linkedin_auth.py     # OAuth-like session management
         │   │   ├── linkedin_api.py
         │   │   ├── scraping.py
         │   │   └── logging.py
@@ -84,7 +87,7 @@ DEVELOPER_GUIDELINES: |
      • Follow **Clean Architecture**—business logic isolated from I/O.  
      • Make scraping & LLM calls resilient (retry w/ exponential back-off).  
      • Keep agents idempotent; cache intermediate JSON under `.cache/`.  
-     • Never hard-code secrets; read from environment or a secrets manager.  
+     • Never hard-code secrets; use OAuth-like flow for LinkedIn (no passwords stored).
      • Unit-test pure logic; integration-test workflows with mocked I/O.
 
   3. **Agent contracts**

@@ -1,0 +1,26 @@
+graph TD
+    subgraph "Input"
+        A[Job Description File]
+    end
+
+    subgraph "Sourceress Pipeline"
+        B(JDIngestor)
+        C(LinkedInSourcer)
+        D(RelevanceScorer)
+        E(KeyMatcher)
+        F(PitchGenerator)
+        G(ExcelWriter)
+    end
+    subgraph "Output"
+        H[Excel Report]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    B --> D
+    D --> E
+    B --> E
+    E --> F
+    F --> G
+    G --> H
