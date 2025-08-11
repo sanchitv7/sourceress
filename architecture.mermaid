@@ -1,26 +1,37 @@
 graph TD
-    subgraph "Input"
-        A[Job Description File]
+    subgraph "Input Layer"
+        A[📄 Job Description Text] --> B
     end
 
-    subgraph "Sourceress Pipeline"
-        B(JDIngestor)
-        C(LinkedInSourcer)
-        D(RelevanceScorer)
-        E(KeyMatcher)
-        F(PitchGenerator)
-        G(ExcelWriter)
+    subgraph "Processing Pipeline" 
+        B[🔍 JD Ingestor<br/>Parses text → structured data]
+        C[👥 LinkedIn Sourcer<br/>Searches profiles matching JD]
+        D[📊 Relevance Scorer<br/>0-100 scores + feature weights]
+        E[🎯 Key Matcher<br/>Bullet-point requirement matches]
+        F[💬 Pitch Generator<br/>Personalized outreach messages]
+        G[📊 Excel Writer<br/>Formatted report generation]
     end
-    subgraph "Output"
-        H[Excel Report]
+    
+    subgraph "Output Layer"
+        H[📁 Excel Report<br/>Candidates + scores + pitches]
     end
 
-    A --> B
-    B --> C
-    C --> D
-    B --> D
-    D --> E
-    B --> E
-    E --> F
-    F --> G
-    G --> H
+    subgraph "Data Flow & Dependencies"
+        B --> C
+        C --> D
+        B --> D
+        D --> E
+        B --> E
+        E --> F
+        F --> G
+        G --> H
+    end
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#e0f2f1
+    style F fill:#fce4ec
+    style G fill:#f1f8e9
+    style H fill:#e3f2fd
