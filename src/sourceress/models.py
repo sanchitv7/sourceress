@@ -48,6 +48,7 @@ class CandidateProfile(BaseModel):
 
     name: str
     linkedin_url: str
+    title: Optional[str] = None  # Job title/headline
     summary: Optional[str] = None
     skills: List[str] = Field(default_factory=list)
     location: Optional[str] = None

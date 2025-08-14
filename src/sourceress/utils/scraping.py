@@ -103,40 +103,76 @@ def search_linkedin(query: str, max_results: int = 50, auto_authenticate: bool =
                 if not href or href in seen_links:
                     continue
                 seen_links.add(href)
-                name = anchor.text.strip() or anchor.get_attribute("innerText")
                 
-                # try to grab title and location using relative selectors
-                container = anchor.find_element(By.XPATH, "ancestor::div[contains(@class,'entity-result') or contains(@class,'search-result')]")
+                # Extract name from the anchor
+                name = anchor.text.strip() or anchor.get_attribute("innerText") or ""
+                
+                # Find the parent container for additional data
+                try:
+                    container = anchor.find_element(By.XPATH, "ancestor::div[contains(@class,'entity-result') or contains(@class,'search-result') or contains(@class,'reusable-search__result-container')]")
+                except Exception:
+                    container = None
                 
                 title = ""
                 location = ""
+                
                 if container:
-                    try:
-                        title_elem = container.find_element(By.CSS_SELECTOR, "div.t-14")
-                        title = title_elem.text.strip()
-                    except Exception:
-                        pass
-                    try:
-                        loc_elem = container.find_element(By.CSS_SELECTOR, "div.t-14.t-normal")
-                        location = loc_elem.text.strip()
-                    except Exception:
-                        pass
-                profiles.append({
-                    "name": name,
-                    "linkedin_url": href.split("?")[0],
-                    "title": title,
-                    "location": location,
-                    "summary": "",
-                    "skills": [],
-                })
-                logger.debug(f"Collected {name}")
+                    # Try multiple selectors for title (LinkedIn changes these frequently)
+                    title_selectors = [
+                        "div.t-14.t-black.t-normal",
+                        "div.t-14.t-normal.t-black",
+                        "div.entity-result__primary-subtitle",
+                        "div.search-result__info",
+                        "span.entity-result__title-text",
+                        "div.t-14"
+                    ]
+                    
+                    for selector in title_selectors:
+                        try:
+                            title_elem = container.find_element(By.CSS_SELECTOR, selector)
+                            title = title_elem.text.strip()
+                            if title and title != name:  # Avoid using name as title
+                                break
+                        except Exception:
+                            continue
+                    
+                    # Try multiple selectors for location
+                    location_selectors = [
+                        "div.t-14.t-normal.t-black--light",
+                        "div.entity-result__secondary-subtitle",
+                        "div.search-result__location",
+                        "div.t-14.t-normal"
+                    ]
+                    
+                    for selector in location_selectors:
+                        try:
+                            loc_elem = container.find_element(By.CSS_SELECTOR, selector)
+                            location = loc_elem.text.strip()
+                            if location and location != title and location != name:
+                                break
+                        except Exception:
+                            continue
+                
+                # Use the data as LinkedIn provides it (no hardcoded assumptions)
+                # LinkedIn search results show limited info - that's normal
+                if name and len(name) > 1:
+                    profiles.append({
+                        "name": name,
+                        "linkedin_url": href.split("?")[0],
+                        "title": title,
+                        "location": location,
+                        "summary": "",
+                        "skills": [],
+                    })
+                    logger.debug(f"Collected: {name} - {title}")
+                
                 if len(profiles) >= max_results:
                     break
             
             if len(profiles) >= max_results:
                 break
             
-            # Scroll further
+            # Scroll furtherbit
             driver.execute_script("window.scrollBy(0, document.body.scrollHeight);")
             time.sleep(random.uniform(2, 4))
             # loop continues

@@ -67,9 +67,14 @@ class LinkedInAuthenticator:
         if not self.has_valid_session():
             raise ValueError("No saved session found. Run authenticate() first.")
         
-        # Create new driver instance
+        # Create new driver instance with headless mode for reliability
         options = uc.ChromeOptions()
+        # options.add_argument("--headless")  # Run in headless mode
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--window-size=1920,1080")
         
         self.driver = uc.Chrome(options=options)
         

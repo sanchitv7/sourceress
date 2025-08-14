@@ -20,6 +20,7 @@ from typing import Any, Callable, Coroutine, TypeVar
 
 from crewai import Agent  # type: ignore
 from loguru import logger
+from pydantic import PrivateAttr
 from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
 
 __all__ = ["BaseAgent"]
@@ -49,6 +50,9 @@ class BaseAgent(Agent):
     #: Maximum wait time between retries in seconds.
     wait_max: int = 10
 
+    # Pydantic private attribute for the logger
+    _log: Any = PrivateAttr(default=None)
+
     # -----------------------------------------------------------------------------
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: D401
@@ -58,7 +62,12 @@ class BaseAgent(Agent):
         super().__init__(*args, **kwargs)
 
         # Each agent gets its own logger context for readable structured logs.
-        self.log = logger.bind(agent=self.name)
+        self._log = logger.bind(agent=self.name)
+
+    @property
+    def log(self) -> Any:
+        """Get the logger instance for this agent."""
+        return self._log
 
     # ------------------------------------------------------------------
     # Public API

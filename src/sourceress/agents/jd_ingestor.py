@@ -59,8 +59,12 @@ class JDIngestor(BaseAgent):
             # ------------------------------------------------------------------
             # 2. Heuristic fallback – ensures downstream pipeline doesn\'t break
             # ------------------------------------------------------------------
+            # Extract title from first non-empty line
+            lines = [line.strip() for line in jd_text.split('\n') if line.strip()]
+            title = lines[0][:120] if lines else "Unknown Position"
+            
             jd_json = {
-                "title": jd_text.split("\n")[0][:120].strip(),
+                "title": title,
                 "must_haves": [],
                 "nice_to_haves": [],
                 "seniority": None,
