@@ -41,20 +41,31 @@ class JDIngestor(BaseAgent):
         system_prompt = (
             "You are an expert recruitment analyst. Given a raw job description, "
             "extract structured JSON with keys: title (string), must_haves (list[str]), "
-            "nice_to_haves (list[str]), seniority (string|optional), location (string|optional). "
-            "Respond with *ONLY* the JSON object and no additional text."
+            "nice_to_haves (list[str]), seniority (string|optional), location (string|optional), "
+            "company_info (string|optional), role_description (string|optional). "
+            "Be thorough in extracting requirements from the text. "
+            "Respond with ONLY the JSON object, no additional text or markdown."
         )
 
         # In some environments an LLM may not be available; handle gracefully.
         jd_json: Dict[str, Any]
         try:
-            llm_response = await async_chat(system_prompt, jd_text, temperature=0.3)
+            llm_response = await async_chat(system_prompt, jd_text, temperature=0.1)
             self.log.debug("LLM raw response: %s", llm_response)
 
-            jd_json = json.loads(llm_response)
+            # Clean the response - remove markdown code blocks if present
+            cleaned_response = llm_response.strip()
+            if cleaned_response.startswith("```json"):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.endswith("```"):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+            
+            jd_json = json.loads(cleaned_response)
         except Exception as exc:  # noqa: BLE001
             self.log.warning(
-                "LLM parsing failed (%s). Falling back to heuristic stub.", exc
+                "LLM parsing failed (%s). Response was: %s. Falling back to heuristic stub.", 
+                exc, llm_response[:200] if 'llm_response' in locals() else 'N/A'
             )
             # ------------------------------------------------------------------
             # 2. Heuristic fallback – ensures downstream pipeline doesn\'t break

@@ -1,24 +1,47 @@
-### Slice 1: Job Description Ingestion (Completed)
+# Sourceress Project Overview
 
-*   [x] **Define Data Contract:** `JobDescription` and `JDIngestResult` models are defined in `src/sourceress/models.py`.
-*   [x] **Implement Agent:** `JDIngestor` is implemented in `src/sourceress/agents/jd_ingestor.py`.
-*   [x] **Write Unit Test:** `tests/test_jd_ingestor.py` provides thorough tests.
-*   [x] **Integrate into Workflow:** `JDIngestor` is integrated into the manual workflow in `src/sourceress/workflows.py`.
-*   [x] **Create Entrypoint:** `main.py` can execute the workflow.
+This document provides a comprehensive overview of the Sourceress project, its architecture, and development conventions.
 
-### Slice 2: LinkedIn Sourcing
+## Project Purpose
 
-*   [ ] **Implement `linkedin_api.py` `fetch_profiles` function:**
-    *   [ ] Read the content of `src/sourceress/utils/scraping.py` to understand the `search_linkedin` function.
-    *   [ ] Implement the logic to convert the raw data from `search_linkedin` into a list of `CandidateProfile` objects.
-    *   [ ] Add error handling and logging.
-*   [ ] **Implement `LinkedInSourcer` Agent:**
-    *   [ ] In `src/sourceress/agents/linkedin_sourcer.py`, replace the dummy data with a call to the `fetch_profiles` function in `utils/linkedin_api.py`.
-    *   [ ] Construct the search query from the input `JobDescription`.
-    *   [ ] Return a `SourcingResult` with the fetched `CandidateProfile` objects.
-*   [ ] **Write Integration Test for `LinkedInSourcer`:**
-    *   [ ] In `tests/test_agents.py`, add a test for the `LinkedInSourcer` agent.
-    *   [ ] Mock the `fetch_profiles` function to return sample data.
-    *   [ ] Assert that the agent correctly processes the input and returns the expected `SourcingResult`.
-*   [ ] **Verify End-to-End Workflow:**
-    *   [ ] Run the existing `tests/test_workflow.py` to ensure the manual workflow still runs correctly with the new `LinkedInSourcer` implementation.
+Sourceress is an AI-powered recruiting assistant that automates the process of sourcing candidates from LinkedIn. It takes a job description as input, finds relevant profiles, scores them, and generates outreach pitches. The goal is to streamline the top-of-funnel recruiting workflow and allow recruiters to focus on engaging with candidates.
+
+## Architecture
+
+The application is designed as a pipeline of agents, each responsible for a specific task in the sourcing process. The agents are orchestrated using a manual chaining of agents, with a plan to migrate to CrewAI for more robust workflow management.
+
+The key components of the architecture are:
+
+*   **Agents**: A set of specialized agents responsible for tasks like ingesting job descriptions, sourcing on LinkedIn, scoring candidates, and generating pitches.
+*   **Workflows**: The `workflows.py` file defines the sequence of agent execution, either manually or through CrewAI.
+*   **LinkedIn Scraping**: The `scraping.py` utility handles the interaction with LinkedIn, including authentication and profile extraction, using Selenium.
+*   **LLM Integration**: The application uses a Large Language Model (LLM) via the `llm.py` utility to parse job descriptions and generate content.
+*   **Data Models**: Pydantic models in `models.py` define the data structures used throughout the application.
+
+## Building and Running
+
+To build and run the project, follow these steps:
+
+1.  **Install Dependencies**:
+    ```bash
+    pip install -e .[dev]
+    ```
+
+2.  **Run the Application**:
+    ```bash
+    python -m sourceress.main --jd-file <path_to_jd_file> --output <output_file_path>
+    ```
+
+3.  **Run Tests**:
+    ```bash
+    pytest
+    ```
+
+## Development Conventions
+
+*   **Code Style**: The project uses `ruff`, `black`, and `isort` for code formatting and linting. These are enforced through pre-commit hooks.
+*   **Type Hinting**: The codebase uses type hints, and `mypy` is used for static type checking.
+*   **Logging**: The `loguru` library is used for logging.
+*   **Modularity**: The application is well-structured, with clear separation of concerns between agents, utilities, and data models.
+*   **Authentication**: LinkedIn authentication is handled by `linkedin_auth.py`, which saves and reuses session cookies.
+*   **Error Handling**: The application includes error handling for LLM parsing failures and LinkedIn scraping issues.

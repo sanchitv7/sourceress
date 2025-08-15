@@ -50,14 +50,13 @@ class LinkedInSourcer(BaseAgent):
         
         # Build boolean query components
         query_parts = []
+        key_skills = []  # Initialize key_skills to avoid scope issues
         
         # Title (required) - use quotes for exact match
         query_parts.append(f'"{core_title}"')
         
         # Must-have skills (OR group) - extract key terms dynamically
         if jd.must_haves:
-            key_skills = []
-            
             # Extract key terms from must-haves (avoid generic words)
             generic_words = {"experience", "years", "plus", "with", "and", "or", "the", "a", "an", "of", "in", "on", "at", "to", "for", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "could", "should", "may", "might", "can", "must", "shall"}
             
@@ -80,11 +79,15 @@ class LinkedInSourcer(BaseAgent):
                 skills_group = " OR ".join(key_skills)
                 query_parts.append(f"({skills_group})")
         
+        # Add location filter if available
+        if jd.location:
+            query_parts.append(f'"{jd.location}"')
+        
         # Combine with AND operators
         search_query = " AND ".join(query_parts)
         
         self.log.info(f"Boolean search query: {search_query}")
-        self.log.debug(f"Components: title='{core_title}', skills={key_skills if 'key_skills' in locals() else []}")
+        self.log.debug(f"Components: title='{core_title}', skills={key_skills}, location='{jd.location}'")
 
         # 2. Fetch profiles using the linkedin_api utility
         try:
@@ -103,4 +106,4 @@ class LinkedInSourcer(BaseAgent):
         
         self.log.info(f"Sourced {len(unique_profiles)} unique candidate profiles.")
 
-        return SourcingResult(candidates=unique_profiles) 
+        return SourcingResult(candidates=unique_profiles)
